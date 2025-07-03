@@ -11,6 +11,7 @@ export interface Event {
   currentAttendees: number
   imageUrl: string
   organizer: string
+  walletId?: string
   tags: string[]
 }
 
