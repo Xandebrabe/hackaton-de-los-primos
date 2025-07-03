@@ -1,179 +1,65 @@
 "use client"
 
 import { useState } from "react"
-import type { Event, EventFormData } from "@/types/event"
-import { Layout } from "@/components/layout"
-import { EventCard } from "@/components/event-card"
-import { EventModal } from "@/components/event-modal"
-import { CreateEventForm } from "@/components/create-event-form"
+import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search } from "lucide-react"
+import { LoginLayout } from "@/components/login-layout"
 
-// Sample events data
-const sampleEvents: Event[] = [
-  {
-    id: "1",
-    title: "Tech Innovation Summit 2024",
-    description:
-      "Join industry leaders and innovators for a day of cutting-edge technology discussions, networking, and hands-on workshops. Discover the latest trends in AI, blockchain, and sustainable tech solutions.",
-    date: "2024-02-15",
-    time: "09:00",
-    location: "San Francisco Convention Center",
-    category: "Technology",
-    price: 299,
-    maxAttendees: 500,
-    currentAttendees: 342,
-    imageUrl: "/placeholder.svg?height=300&width=400",
-    organizer: "TechCorp Events",
-    tags: ["AI", "Blockchain", "Networking", "Innovation"],
-  },
-  {
-    id: "2",
-    title: "Creative Design Workshop",
-    description:
-      "Unleash your creativity in this hands-on design workshop. Learn from professional designers and create stunning visual content using the latest design tools and techniques.",
-    date: "2024-02-20",
-    time: "14:00",
-    location: "Design Studio Downtown",
-    category: "Design",
-    price: 0,
-    maxAttendees: 30,
-    currentAttendees: 18,
-    imageUrl: "/placeholder.svg?height=300&width=400",
-    organizer: "Creative Collective",
-    tags: ["Design", "Workshop", "Creative", "Free"],
-  },
-  {
-    id: "3",
-    title: "Startup Pitch Competition",
-    description:
-      "Watch promising startups pitch their innovative ideas to a panel of expert judges and investors. Network with entrepreneurs and discover the next big thing in business.",
-    date: "2024-02-25",
-    time: "18:30",
-    location: "Innovation Hub",
-    category: "Business",
-    price: 50,
-    maxAttendees: 200,
-    currentAttendees: 156,
-    imageUrl: "/placeholder.svg?height=300&width=400",
-    organizer: "Startup Accelerator",
-    tags: ["Startup", "Pitch", "Investment", "Networking"],
-  },
-]
+export default function LoginPage() {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const router = useRouter()
 
-export default function HomePage() {
-  const [events, setEvents] = useState<Event[]>(sampleEvents)
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false)
-  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("All")
-
-  const categories = ["All", ...Array.from(new Set(events.map((event) => event.category)))]
-
-  const filteredEvents = events.filter((event) => {
-    const matchesSearch =
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === "All" || event.category === selectedCategory
-    return matchesSearch && matchesCategory
-  })
-
-  const handleEventClick = (event: Event) => {
-    setSelectedEvent(event)
-    setIsEventModalOpen(true)
-  }
-
-  const handleSubscribe = (eventId: string) => {
-    setEvents((prevEvents) =>
-      prevEvents.map((event) =>
-        event.id === eventId ? { ...event, currentAttendees: event.currentAttendees + 1 } : event,
-      ),
-    )
-    setIsEventModalOpen(false)
-    // Here you would typically make an API call to subscribe the user
-    alert("Successfully subscribed to the event!")
-  }
-
-  const handleCreateEvent = (eventData: EventFormData) => {
-    const newEvent: Event = {
-      ...eventData,
-      id: Date.now().toString(),
-      currentAttendees: 0,
-    }
-    setEvents((prevEvents) => [newEvent, ...prevEvents])
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault()
+    // TODO: Replace with your actual login logic / API call
+    console.log("Logging in:", email)
+    router.push("/") // Navigate to the homepage after login
   }
 
   return (
-    <Layout onCreateEvent={() => setIsCreateFormOpen(true)}>
-      <div className="space-y-6">
-        {/* Search and Filter Section */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-primary-200">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-500 h-4 w-4" />
-              <Input
-                placeholder="Search events..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-primary-300 focus:border-primary-500"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  onClick={() => setSelectedCategory(category)}
-                  className={
-                    selectedCategory === category
-                      ? "bg-primary-600 hover:bg-primary-700 text-white"
-                      : "border-primary-300 text-primary-700 hover:bg-primary-50"
-                  }
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </div>
+    <LoginLayout>
+      <div className="max-w-lg w-full bg-white/90 backdrop-blur-lg p-10 rounded-2xl shadow-xl border border-primary-300">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-extrabold text-primary-900">Welcome to M33T</h1>
+          <p className="mt-2 text-primary-700 text-lg">Log in to your account</p>
         </div>
 
-        {/* Events Grid */}
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-primary-900">Open Events ({filteredEvents.length})</h2>
-          </div>
+        <form onSubmit={handleLogin} className="space-y-6">
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-12 text-lg border-primary-300 focus:border-primary-500"
+          />
+          <Input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="h-12 text-lg border-primary-300 focus:border-primary-500"
+          />
+          <Button
+            type="submit"
+            className="w-full bg-primary-600 hover:bg-primary-700 text-white text-lg py-3 rounded-xl shadow-md"
+          >
+            Log In
+          </Button>
+        </form>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map((event) => (
-              <EventCard key={event.id} event={event} onClick={handleEventClick} />
-            ))}
-          </div>
-
-          {filteredEvents.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-primary-600 text-lg">No events found matching your criteria.</p>
-            </div>
-          )}
+        <div className="mt-6 text-center">
+          <p className="text-primary-700">
+            Don’t have an account?{" "}
+            <a href="/register" className="text-primary-600 hover:underline font-medium">
+              Sign up
+            </a>
+          </p>
         </div>
       </div>
-
-      {/* Event Detail Modal */}
-      <EventModal
-        event={selectedEvent}
-        isOpen={isEventModalOpen}
-        onClose={() => setIsEventModalOpen(false)}
-        onSubscribe={handleSubscribe}
-      />
-
-      {/* Create Event Form */}
-      <CreateEventForm
-        isOpen={isCreateFormOpen}
-        onClose={() => setIsCreateFormOpen(false)}
-        onSubmit={handleCreateEvent}
-      />
-    </Layout>
+    </LoginLayout>
   )
 }

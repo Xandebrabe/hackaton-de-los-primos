@@ -17,7 +17,7 @@ export function Layout({ children, onCreateEvent }: LayoutProps) {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <Calendar className="h-8 w-8 text-primary-600" />
-              <h1 className="text-2xl font-bold text-primary-900">EventHub</h1>
+              <h1 className="text-2xl font-bold text-primary-900">M33T | Web3 Events</h1>
             </div>
 
             <div className="flex items-center space-x-4">
