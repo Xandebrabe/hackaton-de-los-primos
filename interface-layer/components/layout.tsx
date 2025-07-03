@@ -2,7 +2,8 @@
 
 import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, Calendar, User } from "lucide-react"
+import { WalletConnect } from "@/components/wallet-connect"
+import { Plus, Calendar } from "lucide-react"
 
 interface LayoutProps {
   children: ReactNode
@@ -25,10 +26,7 @@ export function Layout({ children, onCreateEvent }: LayoutProps) {
                 <Plus className="h-4 w-4 mr-2" />
                 Create Event
               </Button>
-              <div className="flex items-center space-x-2 text-primary-700">
-                <User className="h-5 w-5" />
-                <span className="font-medium">Admin</span>
-              </div>
+              <WalletConnect />
             </div>
           </div>
         </div>
