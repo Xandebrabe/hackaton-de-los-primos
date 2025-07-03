@@ -4,26 +4,18 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { WalletConnect } from "@/components/wallet-connect"
 import { LoginLayout } from "@/components/login-layout"
-import { getPhantomPublicKey } from "@/lib/solana-utils"
+import { useWallet } from "@/contexts/wallet-context"
 
 export default function WalletLoginPage() {
   const router = useRouter()
+  const { isConnected, isLoading } = useWallet()
 
-  // Check if wallet is already connected and redirect to events
+  // Redirect to events if already connected
   useEffect(() => {
-    const checkWalletConnection = () => {
-      const publicKey = getPhantomPublicKey()
-      if (publicKey) {
-        router.push("/event-creation")
-      }
+    if (isConnected) {
+      router.push("/event-creation")
     }
-
-    checkWalletConnection()
-
-    // Listen for wallet connection changes
-    const interval = setInterval(checkWalletConnection, 1000)
-    return () => clearInterval(interval)
-  }, [router])
+  }, [isConnected, router])
 
   return (
     <LoginLayout>
