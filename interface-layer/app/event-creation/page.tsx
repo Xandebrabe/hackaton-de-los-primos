@@ -9,6 +9,8 @@ import { CreateEventForm } from "@/components/create-event-form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
+import { useWallet } from "@/contexts/wallet-context"
+import { createPoolTransaction, signAndSubmitTransaction } from "@/lib/solana-utils"
 
 // Sample events data
 const sampleEvents: Event[] = [
@@ -69,6 +71,9 @@ export default function HomePage() {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All")
+  const [isCreatingToken, setIsCreatingToken] = useState(false)
+
+  const { session, isConnected } = useWallet()
 
   const categories = ["All", ...Array.from(new Set(events.map((event) => event.category)))]
 
@@ -105,8 +110,59 @@ export default function HomePage() {
     setEvents((prevEvents) => [newEvent, ...prevEvents])
   }
 
-  return (
-    <Layout onCreateEvent={() => setIsCreateFormOpen(true)}>
+  const handleTestCreateToken = async () => {
+    if (!isConnected || !session?.publicKey) {
+      alert("Please connect your wallet first!")
+      return
+    }
+
+    setIsCreatingToken(true)
+
+    try {
+      // Generate test token parameters
+      const testTokenData = {
+        userPublicKey: session.publicKey,
+        baseMint: "11111111111111111111111111111112", // Test mint address - in real app this would be generated
+        name: "Test Hackathon Token",
+        symbol: "THT",
+        uri: "https://example.com/metadata.json", // Test metadata URI
+      }
+
+      console.log("Creating test token with data:", testTokenData)
+
+      // Step 1: Create the transaction on the server
+      const createResult = await createPoolTransaction(testTokenData)
+
+      if (!createResult.success || !createResult.transaction) {
+        throw new Error(createResult.error || "Failed to create transaction")
+      }
+
+      console.log("Transaction created successfully, requesting signature...")
+
+      // Step 2: Sign and submit the transaction
+      const submitResult = await signAndSubmitTransaction(createResult.transaction)
+
+      if (submitResult.success && submitResult.signature) {
+        alert(`Token pool created successfully! Transaction: ${submitResult.signature}`)
+        console.log("Transaction signature:", submitResult.signature)
+      } else {
+        throw new Error(submitResult.error || "Failed to submit transaction")
+      }
+
+    } catch (error) {
+      console.error("Test create token error:", error)
+      alert(`Failed to create token: ${error instanceof Error ? error.message : "Unknown error"}`)
+    } finally {
+      setIsCreatingToken(false)
+    }
+  }
+
+    return (
+    <Layout
+      onCreateEvent={() => setIsCreateFormOpen(true)}
+      onTestCreateToken={handleTestCreateToken}
+      isTestTokenLoading={isCreatingToken}
+    >
       <div className="space-y-6">
         {/* Search and Filter Section */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-primary-200">
