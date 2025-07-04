@@ -3,6 +3,7 @@ import {
     Connection,
     Keypair,
     PublicKey,
+    SystemProgram,
     Transaction,
 } from "@solana/web3.js"
 import {
@@ -20,7 +21,15 @@ import {
     getLiquidityDeltaFromAmountA,
     calculateTransferFeeIncludedAmount
 } from "@meteora-ag/cp-amm-sdk"
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token"
+import {
+    TOKEN_PROGRAM_ID,
+    createInitializeMintInstruction,
+    MINT_SIZE,
+    getMinimumBalanceForRentExemptMint,
+    getAssociatedTokenAddress,
+    createAssociatedTokenAccountInstruction,
+    createMintToInstruction
+} from "@solana/spl-token"
 import { BN } from "@coral-xyz/anchor"
 
 // Solana RPC connection
@@ -46,7 +55,8 @@ interface CreatePoolRequest {
 interface CreateDammV2PoolResponse {
     tx: Transaction,
     pool: PublicKey,
-    position: PublicKey
+    position: PublicKey,
+    signers: Keypair[]
 }
 
 // This returns a serialized tx that we need to add Solana wallet adapter to sign and broadcast
@@ -55,23 +65,25 @@ export async function POST(request: NextRequest) {
         const body: CreatePoolRequest = await request.json()
 
         // Validate required fields
-        if (!body.userPublicKey || !body.baseMint || !body.name || !body.symbol || !body.uri) {
+        if (!body.userPublicKey || !body.name || !body.symbol || !body.uri) {
             return NextResponse.json(
-                { error: "All fields are required: userPublicKey, baseMint, name, symbol, uri" },
+                { error: "All fields are required: userPublicKey, name, symbol, uri" },
                 { status: 400 }
             )
         }
 
         const userPublicKey = new PublicKey(body.userPublicKey)
-        const baseMint = new PublicKey(body.baseMint)
 
         // Create the pool transaction
-        const { tx, pool, position } = await createDammV2PoolTransaction(userPublicKey, baseMint, TOKEN_A_SUPPLY)
+        const { tx, pool, position, signers } = await createDammV2PoolTransaction(userPublicKey, TOKEN_A_SUPPLY)
 
         // Get latest blockhash and set fee payer
         const { blockhash } = await connection.getLatestBlockhash()
         tx.recentBlockhash = blockhash
         tx.feePayer = userPublicKey
+
+        // Partially sign with server-side keypairs
+        tx.partialSign(...signers)
 
         // Serialize the transaction for client-side signing
         const serializedTransaction = tx.serialize({
@@ -102,9 +114,47 @@ export async function POST(request: NextRequest) {
     }
 }
 
-
-async function createDammV2PoolTransaction(creator: PublicKey, baseTokenMint: PublicKey, tokenAAmount: BN): Promise<CreateDammV2PoolResponse> {
+async function createDammV2PoolTransaction(creator: PublicKey, tokenAAmount: BN): Promise<CreateDammV2PoolResponse> {
     const cpAmmInstance = new CpAmm(connection)
+
+    const mintKeypair = Keypair.generate()
+    const baseTokenMint = mintKeypair.publicKey
+
+    const associatedTokenAccount = await getAssociatedTokenAddress(
+        baseTokenMint,
+        creator
+    );
+
+    const rentLamports = await getMinimumBalanceForRentExemptMint(connection)
+
+    const createMintAccountIx = SystemProgram.createAccount({
+        fromPubkey: creator,
+        newAccountPubkey: baseTokenMint,
+        space: MINT_SIZE,
+        lamports: rentLamports,
+        programId: TOKEN_PROGRAM_ID,
+    });
+
+    const initializeMintIx = createInitializeMintInstruction(
+        baseTokenMint,
+        6, // decimals
+        creator,
+        creator // freeze authority
+    );
+
+    const createAtaIx = createAssociatedTokenAccountInstruction(
+        creator,
+        associatedTokenAccount,
+        creator,
+        baseTokenMint
+    );
+
+    const mintToAtaIx = createMintToInstruction(
+        baseTokenMint,
+        associatedTokenAccount,
+        creator,
+        BigInt(tokenAAmount.toString())
+    );
 
     const positionNft = Keypair.generate()
 
@@ -158,10 +208,18 @@ async function createDammV2PoolTransaction(creator: PublicKey, baseTokenMint: Pu
         tokenBProgram: TOKEN_PROGRAM_ID
     })
 
+    const transaction = new Transaction()
+        .add(createMintAccountIx)
+        .add(initializeMintIx)
+        .add(createAtaIx)
+        .add(mintToAtaIx)
+        .add(...initCustomizePoolTx.instructions);
+
     return {
-        tx: initCustomizePoolTx,
+        tx: transaction,
         pool,
-        position
+        position,
+        signers: [mintKeypair, positionNft]
     }
 }
 

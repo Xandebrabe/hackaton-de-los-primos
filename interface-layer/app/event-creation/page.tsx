@@ -144,7 +144,6 @@ export default function HomePage() {
             // Generate test token parameters
             const testTokenData = {
                 userPublicKey: session.publicKey,
-                baseMint: "11111111111111111111111111111112", // Test mint address - in real app this would be generated
                 name: "Test Hackathon Token",
                 symbol: "THT",
                 uri: "https://example.com/metadata.json", // Test metadata URI

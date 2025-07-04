@@ -25,7 +25,6 @@ const connection = new Connection(
 
 export interface CreatePoolParams {
   userPublicKey: string
-  baseMint: string
   name: string
   symbol: string
   uri: string
@@ -36,6 +35,7 @@ export interface TransactionResponse {
   transaction?: string
   message?: string
   error?: string
+  uri: string
 }
 
 export interface SignAndSubmitResult {
@@ -65,6 +65,7 @@ export async function createPoolTransaction(
       return {
         success: false,
         error: data.error || `HTTP error! status: ${response.status}`,
+        uri: params.uri,
       }
     }
 
@@ -73,6 +74,7 @@ export async function createPoolTransaction(
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",
+      uri: params.uri,
     }
   }
 }
@@ -238,7 +240,6 @@ export async function disconnectPhantom(): Promise<void> {
  * Complete example: Create a pool transaction and have user sign it with Phantom
  */
 export async function createPoolAndSign(
-  baseMint: string,
   name: string,
   symbol: string,
   uri: string
@@ -256,7 +257,6 @@ export async function createPoolAndSign(
   // Step 1: Create the pool transaction
   const createResult = await createPoolTransaction({
     userPublicKey,
-    baseMint,
     name,
     symbol,
     uri,
