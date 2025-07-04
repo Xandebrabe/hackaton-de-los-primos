@@ -1,10 +1,16 @@
-![M33T Logo](public/m33t.jpeg)
+![M33T Logo](./assets/meet_event_platform.png)
 
 # M33T | Web3 Event Platform
 
 ## Overview
 
 M33T is a cutting-edge Web3 platform designed to revolutionize event creation and management. In the Web3 market, there is a noticeable lack of events and platforms dedicated to fostering community engagement and interaction. This project was conceived to address this market gap by providing a seamless and innovative solution for event creation and management, specifically tailored for the Web3 ecosystem.
+
+Through M33T, event owners can promote Web3-focused events and build vibrant communities around them. Participants are required to prove token ownership and stake as part of their access to exclusive event benefits. This proof of stake not only grants access but also unlocks the ability to purchase event-related items with enhanced advantages and enjoy unique perks available only to verified token holders.
+
+To further support the ecosystem, M33T leverages Meteora’s DAMM v2 to bootstrap a one-sided liquidity pool without requiring a quote token. This enables swaps of the event token with zero initial capital beyond Solana gas fees, lowering barriers to liquidity and allowing the event token economy to flourish organically from day one.
+
+Additionally, M33T integrates Circle Wallets, eliminating the complexity of external wallet management for users. By handling wallet ownership seamlessly within the platform, M33T removes one of the key barriers to Web3 adoption, allowing participants to focus on engaging with events, staking tokens, and unlocking benefits — all without worrying about traditional crypto wallet setup and security.
 
 ### Addressing the Market Gap
 
@@ -27,9 +33,10 @@ By integrating blockchain technology and digital wallets, M33T offers a unique v
 Imagine hosting a global Web3 conference where attendees can:
 
 1. **Register with Digital Wallets**: Users authenticate using their wallets, ensuring secure and decentralized access.
-2. **Pay with Stablecoins**: Attendees pay for tickets using USDC, processed seamlessly through Circle Wallet.
-3. **Participate in Blockchain-Backed Events**: All event data, including schedules and attendee lists, is stored on the blockchain for transparency.
-4. **Engage with Interactive Features**: Users can interact with event content through dynamic cards and real-time updates.
+2. **Pay with Stablecoins**: Attendees can get tickets proving assets.
+3. **Create event exclusive wallets**: All events gonna have their own wallet generated and managed by Circle, providing the platform an exclusive experience.
+4. **Participate in Blockchain-Backed Events**: All users can have the experience of swaping tokens to the event tokens into M33T platform too.
+5. **Engage with Interactive Features**: Users can interact with event content through dynamic cards and real-time updates.
 
 M33T makes this vision a reality, providing the tools and infrastructure needed to bring decentralized events to life.
 
@@ -72,6 +79,7 @@ This folder contains the user interface layer, built with **Next.js** and **Tail
 - **Tailwind CSS**: Utility-first CSS framework for styling.
 - **TypeScript**: JavaScript superset that adds static typing.
 - **Solana**: Blockchain used for transactions and digital wallet creation.
+- **Circle Wallets**: Creation of wallets by the events owner.
 
 ## Core Features
 
