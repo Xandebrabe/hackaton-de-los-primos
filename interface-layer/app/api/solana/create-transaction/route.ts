@@ -6,6 +6,7 @@ import {
     Transaction,
 } from "@solana/web3.js"
 import {
+    ActivationType,
     DynamicBondingCurveClient,
 } from "@meteora-ag/dynamic-bonding-curve-sdk"
 import {
@@ -47,6 +48,12 @@ interface CreatePoolRequest {
     name: string
     symbol: string
     uri: string
+}
+
+interface CreateDammV2PoolResponse {
+    tx: Transaction,
+    pool: PublicKey,
+    position: PublicKey
 }
 
 // This returns a serialized tx that we need to add Solana wallet adapter to sign and broadcast
@@ -123,7 +130,7 @@ async function createPoolTransaction(
     return transaction
 }
 
-async function createDammV2PoolTransaction(creator: PublicKey, baseTokenMint: PublicKey) {
+async function createDammV2PoolTransaction(creator: PublicKey, baseTokenMint: PublicKey, tokenAAmount: BN): Promise<CreateDammV2PoolResponse> {
     const cpAmmInstance = new CpAmm(connection)
 
     const positionNft = Keypair.generate()
@@ -131,13 +138,27 @@ async function createDammV2PoolTransaction(creator: PublicKey, baseTokenMint: Pu
     const initialPrice: number = 0.1;
     const initPriceSqrt = getSqrtPriceFromPrice(initialPrice.toString(), 6, 6);
 
+    const baseFee: BaseFee = getBaseFeeParams(
+        100,
+        100,
+        0,
+        0,
+        0
+    )
+
     const poolFeesParams: PoolFeesParams = {
-		baseFee,
-		protocolFeePercent: 20,
-		partnerFeePercent: 0,
-		referralFeePercent: 20,
-		dynamicFee
-	}
+        baseFee,
+        protocolFeePercent: 20,
+        partnerFeePercent: 0,
+        referralFeePercent: 20,
+        dynamicFee: null,
+    }
+
+    let liquidityDelta = getLiquidityDeltaFromAmountA(
+        tokenAAmount,
+        initPriceSqrt,
+        MAX_SQRT_PRICE
+    )
 
     const {
         tx: initCustomizePoolTx,
@@ -156,13 +177,19 @@ async function createDammV2PoolTransaction(creator: PublicKey, baseTokenMint: Pu
         liquidityDelta: liquidityDelta,
         initSqrtPrice: initPriceSqrt,
         poolFees: poolFeesParams,
-        hasAlphaVault: hasAlphaVault,
-        activationType: null,
+        hasAlphaVault: false,
+        activationType: ActivationType.Timestamp,
         collectFeeMode: 1,
         activationPoint: null,
         tokenAProgram: TOKEN_PROGRAM_ID,
         tokenBProgram: TOKEN_PROGRAM_ID
     })
+
+    return {
+        tx: initCustomizePoolTx,
+        pool,
+        position
+    }
 }
 
 // Helper function to get transaction status
