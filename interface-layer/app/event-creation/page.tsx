@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 import { useWallet } from "@/contexts/wallet-context"
-import { createPoolTransaction, simulateTransaction } from "@/lib/solana-utils"
+import { createPoolTransaction, signAndSubmitTransaction } from "@/lib/solana-utils"
 
 // Sample events data
 const sampleEvents: Event[] = [
@@ -160,16 +160,14 @@ export default function HomePage() {
 
             console.log("Transaction created successfully, requesting signature...")
 
-            // Step 2: Sign and simulate the transaction
-            const simResult = await simulateTransaction(createResult.transaction)
+            // Step 2: Sign and submit the transaction
+            const submitResult = await signAndSubmitTransaction(createResult.transaction)
 
-            if (simResult.success) {
-                alert("Transaction simulation successful! Check the console for logs.")
-                console.log("Simulation logs:", simResult.logs)
+            if (submitResult.success && submitResult.signature) {
+                alert(`Token pool created successfully! Transaction: ${submitResult.signature}`)
+                console.log("Transaction signature:", submitResult.signature)
             } else {
-                console.error("Transaction simulation failed:", simResult.error)
-                console.error("Simulation logs:", simResult.logs)
-                throw new Error(`Transaction simulation failed: ${JSON.stringify(simResult.error)}`)
+                throw new Error(submitResult.error || "Failed to submit transaction")
             }
 
         } catch (error) {

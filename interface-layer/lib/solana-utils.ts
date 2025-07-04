@@ -274,7 +274,6 @@ export async function createPoolAndSign(
 
   return submitResult
 }
-
 /**
  * Sign and simulate a transaction using Phantom wallet
  */

@@ -34,7 +34,7 @@ import { BN } from "@coral-xyz/anchor"
 
 // Solana RPC connection
 const connection = new Connection(
-    "https://api.mainnet-beta.solana.com",
+    process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com",
     "confirmed"
 )
 
