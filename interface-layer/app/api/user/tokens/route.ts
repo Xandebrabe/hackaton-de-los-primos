@@ -42,11 +42,19 @@ export async function GET(request: NextRequest) {
             })
         }
 
-        // Check ATA balances for each token
+        // Check ATA balances for each token, but first verify the mint exists on-chain
         const tokenBalances = await Promise.all(
             allTokens.map(async (token: TokenCreationRecord) => {
                 try {
                     const mintPublicKey = new PublicKey(token.mint_address)
+
+                    // First check if the mint actually exists on-chain
+                    const mintAccountInfo = await connection.getAccountInfo(mintPublicKey)
+                    if (!mintAccountInfo) {
+                        console.log(`Mint ${token.mint_address} does not exist on-chain, skipping`)
+                        return null // Skip this token as it doesn't exist
+                    }
+
                     const ataAddress = await getAssociatedTokenAddress(
                         mintPublicKey,
                         userPublicKey
@@ -69,8 +77,14 @@ export async function GET(request: NextRequest) {
                         transactionSignature: token.transaction_signature,
                         hasBalance: ataAccount.amount > BigInt(0)
                     }
-                } catch (error) {
+                                } catch (error) {
                     console.error(`Error checking balance for token ${token.mint_address}:`, error)
+
+                    // Check if this is a mint that doesn't exist (return null to filter out)
+                    if (error instanceof Error && error.message.includes("could not find account")) {
+                        console.log(`Mint ${token.mint_address} account not found, skipping`)
+                        return null
+                    }
 
                     // If ATA doesn't exist or other error, return with 0 balance
                     return {
@@ -92,10 +106,29 @@ export async function GET(request: NextRequest) {
             })
         )
 
+        // Filter out null values (tokens that don't exist on-chain)
+        const validTokens = tokenBalances.filter((token): token is NonNullable<typeof token> => token !== null)
+
+        // If no valid tokens exist on-chain, return empty response
+        if (validTokens.length === 0) {
+            return NextResponse.json({
+                success: true,
+                message: "No valid tokens found on-chain",
+                userAddress,
+                summary: {
+                    totalTokens: 0,
+                    tokensWithBalance: 0,
+                    tokensWithoutBalance: 0,
+                    totalBalanceValue: "0.000000"
+                },
+                tokens: []
+            })
+        }
+
         // Calculate summary stats
-        const totalTokens = tokenBalances.length
-        const tokensWithBalance = tokenBalances.filter((t: any) => t.hasBalance).length
-        const totalBalanceValue = tokenBalances.reduce((sum: number, token: any) => {
+        const totalTokens = validTokens.length
+        const tokensWithBalance = validTokens.filter((t: any) => t.hasBalance).length
+        const totalBalanceValue = validTokens.reduce((sum: number, token: any) => {
             return sum + parseFloat(token.balanceFormatted)
         }, 0)
 
@@ -108,7 +141,7 @@ export async function GET(request: NextRequest) {
                 tokensWithoutBalance: totalTokens - tokensWithBalance,
                 totalBalanceValue: totalBalanceValue.toFixed(6)
             },
-            tokens: tokenBalances
+            tokens: validTokens
         })
 
     } catch (error) {
