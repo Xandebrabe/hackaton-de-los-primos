@@ -11,14 +11,14 @@ import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 import { useWallet } from "@/contexts/wallet-context"
 import { createPoolTransaction, signAndSubmitTransaction } from "@/lib/solana-utils"
+import { TokenSwap } from "@/components/token-swap"
 
 // Sample events data
 const sampleEvents: Event[] = [
     {
         id: "1",
         title: "Tech Innovation Summit 2024",
-        description:
-            "Join industry leaders and innovators for a day of cutting-edge technology discussions, networking, and hands-on workshops. Discover the latest trends in AI, blockchain, and sustainable tech solutions.",
+        description: "Join industry leaders and innovators for a day of cutting-edge technology discussions, networking, and hands-on workshops. Discover the latest trends in AI, blockchain, and sustainable tech solutions.",
         date: "2024-02-15",
         time: "09:00",
         location: "San Francisco Convention Center",
@@ -26,15 +26,15 @@ const sampleEvents: Event[] = [
         price: 299,
         maxAttendees: 500,
         currentAttendees: 342,
-        imageUrl: "/placeholder.svg?height=300&width=400",
+        imageUrl: "/meet_event_platform.png",
         organizer: "TechCorp Events",
         tags: ["AI", "Blockchain", "Networking", "Innovation"],
+        blockchain: ""
     },
     {
         id: "2",
         title: "Creative Design Workshop",
-        description:
-            "Unleash your creativity in this hands-on design workshop. Learn from professional designers and create stunning visual content using the latest design tools and techniques.",
+        description: "Unleash your creativity in this hands-on design workshop. Learn from professional designers and create stunning visual content using the latest design tools and techniques.",
         date: "2024-02-20",
         time: "14:00",
         location: "Design Studio Downtown",
@@ -42,15 +42,15 @@ const sampleEvents: Event[] = [
         price: 0,
         maxAttendees: 30,
         currentAttendees: 18,
-        imageUrl: "/placeholder.svg?height=300&width=400",
+        imageUrl: "/meet_event_platform.png",
         organizer: "Creative Collective",
         tags: ["Design", "Workshop", "Creative", "Free"],
+        blockchain: ""
     },
     {
         id: "3",
         title: "Startup Pitch Competition",
-        description:
-            "Watch promising startups pitch their innovative ideas to a panel of expert judges and investors. Network with entrepreneurs and discover the next big thing in business.",
+        description: "Watch promising startups pitch their innovative ideas to a panel of expert judges and investors. Network with entrepreneurs and discover the next big thing in business.",
         date: "2024-02-25",
         time: "18:30",
         location: "Innovation Hub",
@@ -58,9 +58,10 @@ const sampleEvents: Event[] = [
         price: 50,
         maxAttendees: 200,
         currentAttendees: 156,
-        imageUrl: "/placeholder.svg?height=300&width=400",
+        imageUrl: "/meet_event_platform.png",
         organizer: "Startup Accelerator",
         tags: ["Startup", "Pitch", "Investment", "Networking"],
+        blockchain: ""
     },
 ]
 
@@ -160,13 +161,19 @@ export default function HomePage() {
             }
 
             console.log("Transaction created successfully, requesting signature...")
+            console.log("Token data:", createResult.tokenData)
 
             // Step 2: Sign and submit the transaction
-            const submitResult = await signAndSubmitTransaction(createResult.transaction)
+            const submitResult = await signAndSubmitTransaction(
+                createResult.transaction,
+                createResult.tokenData?.mintAddress
+            )
 
             if (submitResult.success && submitResult.signature) {
                 alert(`Token pool created successfully! Transaction: ${submitResult.signature}`)
                 console.log("Transaction signature:", submitResult.signature)
+                console.log("Mint address:", createResult.tokenData?.mintAddress)
+                console.log("Pool address:", createResult.tokenData?.poolAddress)
             } else {
                 throw new Error(submitResult.error || "Failed to submit transaction")
             }
@@ -235,6 +242,12 @@ export default function HomePage() {
                             <p className="text-primary-600 text-lg">No events found matching your criteria.</p>
                         </div>
                     )}
+                </div>
+
+                {/* Token Swap Section */}
+                <div className="border-t pt-6">
+                    <h2 className="text-2xl font-bold mb-4">Token Swap</h2>
+                    <TokenSwap />
                 </div>
             </div>
 
