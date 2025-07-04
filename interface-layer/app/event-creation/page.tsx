@@ -31,42 +31,7 @@ const sampleEvents: Event[] = [
         organizer: "TechCorp Events",
         blockchain: "SOL",
         tags: ["AI", "Blockchain", "Networking", "Innovation"],
-        blockchain: ""
-    },
-    {
-        id: "2",
-        title: "Creative Design Workshop",
-        description: "Unleash your creativity in this hands-on design workshop. Learn from professional designers and create stunning visual content using the latest design tools and techniques.",
-        date: "2024-02-20",
-        time: "14:00",
-        location: "Design Studio Downtown",
-        category: "Design",
-        price: 0,
-        maxAttendees: 30,
-        currentAttendees: 18,
-        imageUrl: "/meet_event_platform.png",
-        organizer: "Creative Collective",
-        blockchain: "SOL",
-        tags: ["Design", "Workshop", "Creative", "Free"],
-        blockchain: ""
-    },
-    {
-        id: "3",
-        title: "Startup Pitch Competition",
-        description: "Watch promising startups pitch their innovative ideas to a panel of expert judges and investors. Network with entrepreneurs and discover the next big thing in business.",
-        date: "2024-02-25",
-        time: "18:30",
-        location: "Innovation Hub",
-        category: "Business",
-        price: 50,
-        maxAttendees: 200,
-        currentAttendees: 156,
-        imageUrl: "/meet_event_platform.png",
-        organizer: "Startup Accelerator",
-        blockchain: "SOL",
-        tags: ["Startup", "Pitch", "Investment", "Networking"],
-        blockchain: ""
-    },
+    }
 ]
 
 export default function HomePage() {
