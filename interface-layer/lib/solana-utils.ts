@@ -518,3 +518,34 @@ export function determineSwapDirection(
     throw new Error("Invalid token pair for this pool")
   }
 }
+
+/**
+ * Get user's token portfolio (all tokens with their balances)
+ */
+export async function getUserTokens(userAddress: string): Promise<{
+  success: boolean
+  data?: any
+  error?: string
+}> {
+  try {
+    const response = await fetch(`/api/user/tokens?userAddress=${encodeURIComponent(userAddress)}`)
+    const data = await response.json()
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.error || `HTTP error! status: ${response.status}`
+      }
+    }
+
+    return {
+      success: true,
+      data
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred"
+    }
+  }
+}

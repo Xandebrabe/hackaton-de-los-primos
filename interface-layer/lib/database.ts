@@ -117,6 +117,25 @@ export async function getTokenCreationsByCreator(creatorAddress: string): Promis
   }
 }
 
+// Get all token creations (for checking user balances across all tokens)
+export async function getAllTokenCreations(): Promise<TokenCreationRecord[]> {
+  const client = await pool.connect()
+
+  try {
+    const result = await client.query(`
+      SELECT * FROM token_creations
+      ORDER BY created_at DESC
+    `)
+
+    return result.rows
+  } catch (error) {
+    console.error('Error fetching all token creations:', error)
+    throw error
+  } finally {
+    client.release()
+  }
+}
+
 // Get token creation by mint address
 export async function getTokenCreationByMint(mintAddress: string): Promise<TokenCreationRecord | null> {
   const client = await pool.connect()

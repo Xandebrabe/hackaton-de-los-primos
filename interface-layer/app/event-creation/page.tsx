@@ -12,6 +12,7 @@ import { Search } from "lucide-react"
 import { useWallet } from "@/contexts/wallet-context"
 import { createPoolTransaction, signAndSubmitTransaction } from "@/lib/solana-utils"
 import { TokenSwap } from "@/components/token-swap"
+import UserTokens from "@/components/user-tokens"
 
 // Sample events data
 const sampleEvents: Event[] = [
@@ -28,6 +29,7 @@ const sampleEvents: Event[] = [
         currentAttendees: 342,
         imageUrl: "/meet_event_platform.png",
         organizer: "TechCorp Events",
+        blockchain: "SOL",
         tags: ["AI", "Blockchain", "Networking", "Innovation"],
         blockchain: ""
     },
@@ -44,6 +46,7 @@ const sampleEvents: Event[] = [
         currentAttendees: 18,
         imageUrl: "/meet_event_platform.png",
         organizer: "Creative Collective",
+        blockchain: "SOL",
         tags: ["Design", "Workshop", "Creative", "Free"],
         blockchain: ""
     },
@@ -60,6 +63,7 @@ const sampleEvents: Event[] = [
         currentAttendees: 156,
         imageUrl: "/meet_event_platform.png",
         organizer: "Startup Accelerator",
+        blockchain: "SOL",
         tags: ["Startup", "Pitch", "Investment", "Networking"],
         blockchain: ""
     },
@@ -104,7 +108,7 @@ export default function HomePage() {
 
     const handleCreateEvent = async (eventData: EventFormData) => {
         try {
-            const res = await fetch("/api/circle/create-wallet", { 
+            const res = await fetch("/api/circle/create-wallet", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ walletSetName: eventData.walletSetName || eventData.title, blockchains: [eventData.blockchain] }),
@@ -120,7 +124,7 @@ export default function HomePage() {
                 ...eventData,
                 id: Date.now().toString(),
                 currentAttendees: 0,
-                walletId: result.wallets[0].id,  
+                walletId: result.wallets[0].id,
                 blockchain: eventData.blockchain,
             };
 
@@ -249,6 +253,14 @@ export default function HomePage() {
                     <h2 className="text-2xl font-bold mb-4">Token Swap</h2>
                     <TokenSwap />
                 </div>
+
+                {/* User Tokens Section */}
+                {isConnected && session?.publicKey && (
+                    <div className="border-t pt-6">
+                        <h2 className="text-2xl font-bold mb-4">My Token Portfolio</h2>
+                        <UserTokens userAddress={session.publicKey} />
+                    </div>
+                )}
             </div>
 
             {/* Event Detail Modal */}
