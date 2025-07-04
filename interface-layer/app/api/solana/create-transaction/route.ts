@@ -6,10 +6,6 @@ import {
     Transaction,
 } from "@solana/web3.js"
 import {
-    ActivationType,
-    DynamicBondingCurveClient,
-} from "@meteora-ag/dynamic-bonding-curve-sdk"
-import {
     BaseFee,
     CpAmm,
     getDynamicFeeParams,
@@ -160,7 +156,7 @@ async function createDammV2PoolTransaction(creator: PublicKey, baseTokenMint: Pu
         initSqrtPrice: initPriceSqrt,
         poolFees: poolFeesParams,
         hasAlphaVault: false,
-        activationType: ActivationType.Timestamp,
+        activationType: 0,
         collectFeeMode: 1,
         activationPoint: null,
         tokenAProgram: TOKEN_PROGRAM_ID,
