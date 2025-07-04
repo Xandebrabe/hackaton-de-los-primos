@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 import { useWallet } from "@/contexts/wallet-context"
 import { createPoolTransaction, signAndSubmitTransaction } from "@/lib/solana-utils"
+import { TokenSwap } from "@/components/token-swap"
 
 // Sample events data
 const sampleEvents: Event[] = [
@@ -240,6 +241,12 @@ export default function HomePage() {
                             <p className="text-primary-600 text-lg">No events found matching your criteria.</p>
                         </div>
                     )}
+                </div>
+
+                {/* Token Swap Section */}
+                <div className="border-t pt-6">
+                    <h2 className="text-2xl font-bold mb-4">Token Swap</h2>
+                    <TokenSwap />
                 </div>
             </div>
 

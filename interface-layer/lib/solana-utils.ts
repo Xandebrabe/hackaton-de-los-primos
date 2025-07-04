@@ -50,6 +50,26 @@ export interface SignAndSubmitResult {
   error?: string
 }
 
+export interface SwapQuote {
+  poolAddress: string
+  tokenIn: string
+  tokenOut: string
+  amountIn: string
+  amountOut: string
+  priceImpact: number
+  fee: string
+  swapDirection: string
+}
+
+export interface SwapParams {
+  poolAddress: string
+  tokenIn: string
+  tokenOut: string
+  amountIn: string
+  minAmountOut: string
+  swapDirection: "tokenAToTokenB" | "tokenBToTokenA"
+}
+
 /**
  * Create a pool transaction on the server and return it for signing
  */
@@ -300,6 +320,7 @@ export async function createPoolAndSign(
 
   return submitResult
 }
+
 /**
  * Sign and simulate a transaction using Phantom wallet
  */
@@ -348,5 +369,152 @@ export async function simulateTransaction(
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",
     }
+  }
+}
+
+/**
+ * Get swap quote from Meteora DAMM v2 pool
+ */
+export async function getSwapQuote(params: {
+  poolAddress: string
+  tokenIn: string
+  tokenOut: string
+  amountIn: string
+  swapDirection?: "tokenAToTokenB" | "tokenBToTokenA"
+}): Promise<{ success: boolean; quote?: SwapQuote; error?: string }> {
+  try {
+    const queryParams = new URLSearchParams({
+      poolAddress: params.poolAddress,
+      tokenIn: params.tokenIn,
+      tokenOut: params.tokenOut,
+      amountIn: params.amountIn,
+      swapDirection: params.swapDirection || "tokenAToTokenB"
+    })
+
+    const response = await fetch(`/api/solana/swap/quote?${queryParams}`)
+    const data = await response.json()
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.error || `HTTP error! status: ${response.status}`
+      }
+    }
+
+    return {
+      success: true,
+      quote: data.quote
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred"
+    }
+  }
+}
+
+/**
+ * Execute swap transaction
+ */
+export async function executeSwap(params: SwapParams): Promise<{
+  success: boolean
+  transaction?: string
+  swapDetails?: any
+  error?: string
+}> {
+  try {
+    const userPublicKey = getPhantomPublicKey()
+    if (!userPublicKey) {
+      return {
+        success: false,
+        error: "Phantom wallet not connected"
+      }
+    }
+
+    const response = await fetch("/api/solana/swap/execute", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...params,
+        userAddress: userPublicKey
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.error || `HTTP error! status: ${response.status}`
+      }
+    }
+
+    return {
+      success: true,
+      transaction: data.transaction,
+      swapDetails: data.swapDetails
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred"
+    }
+  }
+}
+
+/**
+ * Complete swap: get quote, create transaction, and have user sign it
+ */
+export async function performSwap(params: SwapParams): Promise<SignAndSubmitResult> {
+  try {
+    // Step 1: Execute swap (create transaction)
+    const swapResult = await executeSwap(params)
+
+    if (!swapResult.success || !swapResult.transaction) {
+      return {
+        success: false,
+        error: swapResult.error || "Failed to create swap transaction"
+      }
+    }
+
+    // Step 2: Sign and submit the transaction
+    const submitResult = await signAndSubmitTransaction(swapResult.transaction)
+
+    return submitResult
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred"
+    }
+  }
+}
+
+/**
+ * Helper function to calculate minimum amount out with slippage
+ */
+export function calculateMinAmountOut(amountOut: string, slippagePercent: number): string {
+  const amount = BigInt(amountOut)
+  const slippageBps = BigInt(Math.floor(slippagePercent * 100)) // Convert to basis points
+  const minAmount = amount - (amount * slippageBps) / BigInt(10000)
+  return minAmount.toString()
+}
+
+/**
+ * Helper function to format swap direction based on token addresses
+ */
+export function determineSwapDirection(
+  tokenIn: string,
+  tokenOut: string,
+  poolTokenA: string,
+  poolTokenB: string
+): "tokenAToTokenB" | "tokenBToTokenA" {
+  if (tokenIn === poolTokenA && tokenOut === poolTokenB) {
+    return "tokenAToTokenB"
+  } else if (tokenIn === poolTokenB && tokenOut === poolTokenA) {
+    return "tokenBToTokenA"
+  } else {
+    throw new Error("Invalid token pair for this pool")
   }
 }
