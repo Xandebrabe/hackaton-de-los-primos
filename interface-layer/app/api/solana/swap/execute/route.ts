@@ -16,7 +16,6 @@ interface SwapRequest {
     amountIn: string
     minAmountOut: string
     userAddress: string
-    swapDirection: "tokenAToTokenB" | "tokenBToTokenA"
 }
 
 export async function POST(request: NextRequest) {
@@ -74,7 +73,6 @@ export async function POST(request: NextRequest) {
                 tokenOut: body.tokenOut,
                 amountIn: body.amountIn,
                 minAmountOut: body.minAmountOut,
-                swapDirection: body.swapDirection
             }
         })
 
