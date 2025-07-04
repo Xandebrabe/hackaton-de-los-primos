@@ -42,6 +42,8 @@ const USDC = new PublicKey(
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 )
 
+const TOKEN_A_SUPPLY = new BN(1_000_000e6)
+
 interface CreatePoolRequest {
     userPublicKey: string
     baseMint: string
@@ -73,15 +75,15 @@ export async function POST(request: NextRequest) {
         const baseMint = new PublicKey(body.baseMint)
 
         // Create the pool transaction
-        const transaction = await createPoolTransaction(body, userPublicKey, baseMint)
+        const { tx, pool, position } = await createDammV2PoolTransaction(userPublicKey, baseMint, TOKEN_A_SUPPLY)
 
         // Get latest blockhash and set fee payer
         const { blockhash } = await connection.getLatestBlockhash()
-        transaction.recentBlockhash = blockhash
-        transaction.feePayer = userPublicKey
+        tx.recentBlockhash = blockhash
+        tx.feePayer = userPublicKey
 
         // Serialize the transaction for client-side signing
-        const serializedTransaction = transaction.serialize({
+        const serializedTransaction = tx.serialize({
             requireAllSignatures: false,
             verifySignatures: false,
         })
@@ -109,26 +111,6 @@ export async function POST(request: NextRequest) {
     }
 }
 
-async function createPoolTransaction(
-    body: CreatePoolRequest,
-    userPublicKey: PublicKey,
-    baseMint: PublicKey
-): Promise<Transaction> {
-    const client = new DynamicBondingCurveClient(connection, "confirmed")
-
-    // Create the pool transaction
-    const transaction = await client.pool.createPool({
-        baseMint: baseMint,
-        config: DBC_CONFIG_ADDRESS_DAMM_V2_2,
-        name: body.name,
-        uri: body.uri,
-        symbol: body.symbol,
-        payer: userPublicKey,
-        poolCreator: userPublicKey,
-    })
-
-    return transaction
-}
 
 async function createDammV2PoolTransaction(creator: PublicKey, baseTokenMint: PublicKey, tokenAAmount: BN): Promise<CreateDammV2PoolResponse> {
     const cpAmmInstance = new CpAmm(connection)
@@ -170,7 +152,7 @@ async function createDammV2PoolTransaction(creator: PublicKey, baseTokenMint: Pu
         positionNft: positionNft.publicKey,
         tokenAMint: baseTokenMint,
         tokenBMint: USDC,
-        tokenAAmount: new BN(1_000_000e6),
+        tokenAAmount: tokenAAmount,
         tokenBAmount: new BN(0),
         sqrtMinPrice: initPriceSqrt,
         sqrtMaxPrice: MAX_SQRT_PRICE,
