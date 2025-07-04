@@ -115,33 +115,3 @@ Imagine an attendee registering for a Web3 event on M33T:
 3. **Instant Confirmation**: The payment is confirmed instantly, and the attendee receives access to the event.
 
 This integration ensures a smooth and secure payment experience, aligning with M33T's mission to simplify Web3 event management.
-
-## Li.Fi Integration
-
-M33T also integrates with **Li.Fi**, a powerful cross-chain bridge and DEX aggregator, to enhance the platform's multichain capabilities. This integration allows users to seamlessly swap tokens and transfer assets across multiple blockchains, making M33T a truly multichain event platform.
-
-### What is Li.Fi?
-
-Li.Fi is a comprehensive solution for cross-chain interoperability. It aggregates multiple bridges and decentralized exchanges (DEXs), enabling users to:
-
-- **Swap Tokens Across Chains**: Effortlessly exchange tokens between different blockchains.
-- **Bridge Assets**: Transfer assets securely and efficiently across supported networks.
-- **Access Multichain Liquidity**: Leverage liquidity from various DEXs and bridges for optimal rates.
-
-### How Li.Fi Enhances M33T
-
-By integrating Li.Fi, M33T provides users with:
-
-- **Multichain Event Payments**: Attendees can pay for events using tokens from various blockchains, ensuring accessibility and flexibility.
-- **Cross-Chain Asset Management**: Event organizers can manage funds across multiple chains without leaving the platform.
-- **Improved User Experience**: The seamless token swap and bridging functionality reduce friction for users interacting with multichain assets.
-
-### Use Case Example: Multichain Event Payments
-
-Imagine an event organizer who wants to accept payments in tokens from different blockchains. With Li.Fi integration:
-
-1. **Attendees Choose Their Preferred Blockchain**: Users can select their blockchain of choice and pay using their native tokens.
-2. **Li.Fi Handles the Conversion**: The platform automatically swaps the tokens to the organizer's preferred blockchain and token.
-3. **Funds Are Bridged and Settled**: The assets are securely transferred and settled in the organizer's wallet.
-
-This integration ensures that M33T remains at the forefront of Web3 innovation, catering to a diverse and global audience.
