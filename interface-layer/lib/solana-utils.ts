@@ -19,7 +19,7 @@ declare global {
 }
 
 const connection = new Connection(
-  "https://api.mainnet-beta.solana.com",
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL!,
   "confirmed"
 )
 
