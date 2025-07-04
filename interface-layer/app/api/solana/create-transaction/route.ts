@@ -1,12 +1,30 @@
 import { NextRequest, NextResponse } from "next/server"
 import {
     Connection,
+    Keypair,
     PublicKey,
     Transaction,
 } from "@solana/web3.js"
 import {
     DynamicBondingCurveClient,
 } from "@meteora-ag/dynamic-bonding-curve-sdk"
+import {
+    BaseFee,
+    CpAmm,
+    getDynamicFeeParams,
+    getBaseFeeParams,
+    getPriceFromSqrtPrice,
+    getSqrtPriceFromPrice,
+    MAX_SQRT_PRICE,
+    MIN_SQRT_PRICE,
+    PoolFeesParams,
+    BIN_STEP_BPS_DEFAULT,
+    BIN_STEP_BPS_U128_DEFAULT,
+    getLiquidityDeltaFromAmountA,
+    calculateTransferFeeIncludedAmount
+} from "@meteora-ag/cp-amm-sdk"
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token"
+import { BN } from "@coral-xyz/anchor"
 
 // Solana RPC connection
 const connection = new Connection(
@@ -17,6 +35,10 @@ const connection = new Connection(
 // DBC Config Address for DAMM V2
 const DBC_CONFIG_ADDRESS_DAMM_V2_2 = new PublicKey(
     "have_to_find_good_one"
+)
+
+const USDC = new PublicKey(
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 )
 
 interface CreatePoolRequest {
@@ -99,6 +121,48 @@ async function createPoolTransaction(
     })
 
     return transaction
+}
+
+async function createDammV2PoolTransaction(creator: PublicKey, baseTokenMint: PublicKey) {
+    const cpAmmInstance = new CpAmm(connection)
+
+    const positionNft = Keypair.generate()
+
+    const initialPrice: number = 0.1;
+    const initPriceSqrt = getSqrtPriceFromPrice(initialPrice.toString(), 6, 6);
+
+    const poolFeesParams: PoolFeesParams = {
+		baseFee,
+		protocolFeePercent: 20,
+		partnerFeePercent: 0,
+		referralFeePercent: 20,
+		dynamicFee
+	}
+
+    const {
+        tx: initCustomizePoolTx,
+        pool,
+        position
+    } = await cpAmmInstance.createCustomPool({
+        payer: creator,
+        creator: creator,
+        positionNft: positionNft.publicKey,
+        tokenAMint: baseTokenMint,
+        tokenBMint: USDC,
+        tokenAAmount: new BN(1_000_000e6),
+        tokenBAmount: new BN(0),
+        sqrtMinPrice: initPriceSqrt,
+        sqrtMaxPrice: MAX_SQRT_PRICE,
+        liquidityDelta: liquidityDelta,
+        initSqrtPrice: initPriceSqrt,
+        poolFees: poolFeesParams,
+        hasAlphaVault: hasAlphaVault,
+        activationType: null,
+        collectFeeMode: 1,
+        activationPoint: null,
+        tokenAProgram: TOKEN_PROGRAM_ID,
+        tokenBProgram: TOKEN_PROGRAM_ID
+    })
 }
 
 // Helper function to get transaction status
