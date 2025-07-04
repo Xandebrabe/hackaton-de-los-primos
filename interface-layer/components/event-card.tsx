@@ -78,6 +78,13 @@ export function EventCard({ event, onClick }: EventCardProps) {
             </Badge>
           )}
         </div>
+
+        {event.walletId && (
+          <div className="mt-2 text-xs text-primary-600 break-all">
+            Wallet: {event.walletId.slice(0, 6)}...{event.walletId.slice(-4)}
+            {event.blockchain && <span className="ml-1">({event.blockchain})</span>}
+          </div>
+        )}
       </CardContent>
     </Card>
   )
