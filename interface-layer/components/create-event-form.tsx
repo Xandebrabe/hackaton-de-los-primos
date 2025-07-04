@@ -29,6 +29,8 @@ export function CreateEventForm({ isOpen, onClose, onSubmit }: CreateEventFormPr
     imageUrl: "/placeholder.svg?height=300&width=400",
     organizer: "Admin",
     tags: [],
+    walletSetName: "",
+    blockchain: "",
   })
 
   const [tagsInput, setTagsInput] = useState("")
@@ -54,6 +56,8 @@ export function CreateEventForm({ isOpen, onClose, onSubmit }: CreateEventFormPr
       imageUrl: "/placeholder.svg?height=300&width=400",
       organizer: "Admin",
       tags: [],
+      walletSetName: "",
+      blockchain: "",
     })
     setTagsInput("")
     onClose()
@@ -176,6 +180,23 @@ export function CreateEventForm({ isOpen, onClose, onSubmit }: CreateEventFormPr
               className="border-primary-300 focus:border-primary-500"
             />
           </div>
+          <div>
+            <Label htmlFor="blockchain">Blockchain</Label>
+            <select
+              id="blockchain"
+              value={formData.blockchain || "MATIC-AMOY"}
+              onChange={(e) => setFormData({ ...formData, blockchain: e.target.value })}
+              required
+              className="border-primary-300 focus:border-primary-500 w-full p-2 rounded"
+            >
+              <option value="MATIC-AMOY">Polygon Amoy (MATIC-AMOY)</option>
+              <option value="ETH-SEPOLIA">Ethereum Sepolia (ETH-SEPOLIA)</option>
+              <option value="AVAX-FUJI">Avalanche Fuji (AVAX-FUJI)</option>
+              <option value="SOL-DEVNET">Solana Devnet (SOL-DEVNET)</option>
+              <option value="ARB-SEPOLIA">Arbitrum Sepolia (ARB-SEPOLIA)</option>
+            </select>
+          </div>
+
 
           <div>
             <Label htmlFor="tags">Tags (comma-separated)</Label>
