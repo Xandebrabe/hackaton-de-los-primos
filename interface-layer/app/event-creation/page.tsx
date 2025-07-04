@@ -12,6 +12,7 @@ import { Search } from "lucide-react"
 import { useWallet } from "@/contexts/wallet-context"
 import { createPoolTransaction, signAndSubmitTransaction } from "@/lib/solana-utils"
 import { TokenSwap } from "@/components/token-swap"
+import UserTokens from "@/components/user-tokens"
 
 // Sample events data
 const sampleEvents: Event[] = [
@@ -28,41 +29,9 @@ const sampleEvents: Event[] = [
         currentAttendees: 342,
         imageUrl: "/meet_event_platform.png",
         organizer: "TechCorp Events",
+        blockchain: "SOL",
         tags: ["AI", "Blockchain", "Networking", "Innovation"],
-        blockchain: ""
-    },
-    {
-        id: "2",
-        title: "Creative Design Workshop",
-        description: "Unleash your creativity in this hands-on design workshop. Learn from professional designers and create stunning visual content using the latest design tools and techniques.",
-        date: "2024-02-20",
-        time: "14:00",
-        location: "Design Studio Downtown",
-        category: "Design",
-        price: 0,
-        maxAttendees: 30,
-        currentAttendees: 18,
-        imageUrl: "/meet_event_platform.png",
-        organizer: "Creative Collective",
-        tags: ["Design", "Workshop", "Creative", "Free"],
-        blockchain: ""
-    },
-    {
-        id: "3",
-        title: "Startup Pitch Competition",
-        description: "Watch promising startups pitch their innovative ideas to a panel of expert judges and investors. Network with entrepreneurs and discover the next big thing in business.",
-        date: "2024-02-25",
-        time: "18:30",
-        location: "Innovation Hub",
-        category: "Business",
-        price: 50,
-        maxAttendees: 200,
-        currentAttendees: 156,
-        imageUrl: "/meet_event_platform.png",
-        organizer: "Startup Accelerator",
-        tags: ["Startup", "Pitch", "Investment", "Networking"],
-        blockchain: ""
-    },
+    }
 ]
 
 export default function HomePage() {
@@ -104,7 +73,7 @@ export default function HomePage() {
 
     const handleCreateEvent = async (eventData: EventFormData) => {
         try {
-            const res = await fetch("/api/circle/create-wallet", { 
+            const res = await fetch("/api/circle/create-wallet", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ walletSetName: eventData.walletSetName || eventData.title, blockchains: [eventData.blockchain] }),
@@ -120,7 +89,7 @@ export default function HomePage() {
                 ...eventData,
                 id: Date.now().toString(),
                 currentAttendees: 0,
-                walletId: result.wallets[0].id,  
+                walletId: result.wallets[0].id,
                 blockchain: eventData.blockchain,
             };
 
@@ -149,6 +118,7 @@ export default function HomePage() {
                 name: "Test Hackathon Token",
                 symbol: "THT",
                 uri: "https://example.com/metadata.json", // Test metadata URI
+                eventId: "5", // Default event ID for test tokens
             }
 
             console.log("Creating test token with data:", testTokenData)
@@ -249,6 +219,14 @@ export default function HomePage() {
                     <h2 className="text-2xl font-bold mb-4">Token Swap</h2>
                     <TokenSwap />
                 </div>
+
+                {/* User Tokens Section */}
+                {isConnected && session?.publicKey && (
+                    <div className="border-t pt-6">
+                        <h2 className="text-2xl font-bold mb-4">My Token Portfolio</h2>
+                        <UserTokens userAddress={session.publicKey} />
+                    </div>
+                )}
             </div>
 
             {/* Event Detail Modal */}

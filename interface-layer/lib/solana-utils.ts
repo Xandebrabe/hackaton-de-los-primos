@@ -28,6 +28,7 @@ export interface CreatePoolParams {
   name: string
   symbol: string
   uri: string
+  eventId: string
 }
 
 export interface TransactionResponse {
@@ -288,7 +289,8 @@ export async function disconnectPhantom(): Promise<void> {
 export async function createPoolAndSign(
   name: string,
   symbol: string,
-  uri: string
+  uri: string,
+  eventId: string
 ): Promise<SignAndSubmitResult> {
   // Get the connected Phantom wallet public key
   const userPublicKey = getPhantomPublicKey()
@@ -306,6 +308,7 @@ export async function createPoolAndSign(
     name,
     symbol,
     uri,
+    eventId,
   })
 
   if (!createResult.success || !createResult.transaction) {
@@ -516,5 +519,36 @@ export function determineSwapDirection(
     return "tokenBToTokenA"
   } else {
     throw new Error("Invalid token pair for this pool")
+  }
+}
+
+/**
+ * Get user's token portfolio (all tokens with their balances)
+ */
+export async function getUserTokens(userAddress: string): Promise<{
+  success: boolean
+  data?: any
+  error?: string
+}> {
+  try {
+    const response = await fetch(`/api/user/tokens?userAddress=${encodeURIComponent(userAddress)}`)
+    const data = await response.json()
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.error || `HTTP error! status: ${response.status}`
+      }
+    }
+
+    return {
+      success: true,
+      data
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred"
+    }
   }
 }

@@ -51,6 +51,7 @@ interface CreatePoolRequest {
     name: string
     symbol: string
     uri: string
+    eventId: string
 }
 
 interface CreateDammV2PoolResponse {
@@ -70,9 +71,9 @@ export async function POST(request: NextRequest) {
         const body: CreatePoolRequest = await request.json()
 
         // Validate required fields
-        if (!body.userPublicKey || !body.name || !body.symbol || !body.uri) {
+        if (!body.userPublicKey || !body.name || !body.symbol || !body.uri || !body.eventId) {
             return NextResponse.json(
-                { error: "All fields are required: userPublicKey, name, symbol, uri" },
+                { error: "All fields are required: userPublicKey, name, symbol, uri, eventId" },
                 { status: 400 }
             )
         }
@@ -99,6 +100,7 @@ export async function POST(request: NextRequest) {
             name: body.name,
             symbol: body.symbol,
             uri: body.uri,
+            event_id: body.eventId,
         })
 
         // Serialize the transaction for client-side signing

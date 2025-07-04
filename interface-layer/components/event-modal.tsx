@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, MapPin, Users, DollarSign, User, Clock } from "lucide-react"
+import EventTokens from "@/components/event-tokens"
 
 interface EventModalProps {
   event: Event | null
@@ -121,6 +122,11 @@ export function EventModal({ event, isOpen, onClose, onSubscribe }: EventModalPr
                 </Badge>
               ))}
             </div>
+          </div>
+
+          {/* Event Tokens Section */}
+          <div className="border-t pt-6">
+            <EventTokens eventId={event.id} />
           </div>
         </div>
       </DialogContent>

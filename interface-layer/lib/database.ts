@@ -15,6 +15,7 @@ export interface TokenCreationRecord {
   name: string
   symbol: string
   uri: string
+  event_id: string
   transaction_signature?: string
   created_at?: Date
 }
@@ -35,6 +36,7 @@ export async function initializeDatabase() {
         name VARCHAR(255) NOT NULL,
         symbol VARCHAR(20) NOT NULL,
         uri TEXT,
+        event_id VARCHAR(255) NOT NULL,
         transaction_signature VARCHAR(88),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -49,6 +51,11 @@ export async function initializeDatabase() {
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_token_creations_mint
       ON token_creations (mint_address)
+    `)
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_token_creations_event
+      ON token_creations (event_id)
     `)
 
     console.log('Database schema initialized successfully')
@@ -74,8 +81,9 @@ export async function saveTokenCreation(record: TokenCreationRecord): Promise<nu
         name,
         symbol,
         uri,
+        event_id,
         transaction_signature
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING id
     `, [
       record.mint_address,
@@ -85,6 +93,7 @@ export async function saveTokenCreation(record: TokenCreationRecord): Promise<nu
       record.name,
       record.symbol,
       record.uri,
+      record.event_id,
       record.transaction_signature
     ])
 
@@ -111,6 +120,45 @@ export async function getTokenCreationsByCreator(creatorAddress: string): Promis
     return result.rows
   } catch (error) {
     console.error('Error fetching token creations:', error)
+    throw error
+  } finally {
+    client.release()
+  }
+}
+
+// Get token creations by event ID
+export async function getTokenCreationsByEvent(eventId: string): Promise<TokenCreationRecord[]> {
+  const client = await pool.connect()
+
+  try {
+    const result = await client.query(`
+      SELECT * FROM token_creations
+      WHERE event_id = $1
+      ORDER BY created_at DESC
+    `, [eventId])
+
+    return result.rows
+  } catch (error) {
+    console.error('Error fetching token creations by event:', error)
+    throw error
+  } finally {
+    client.release()
+  }
+}
+
+// Get all token creations (for checking user balances across all tokens)
+export async function getAllTokenCreations(): Promise<TokenCreationRecord[]> {
+  const client = await pool.connect()
+
+  try {
+    const result = await client.query(`
+      SELECT * FROM token_creations
+      ORDER BY created_at DESC
+    `)
+
+    return result.rows
+  } catch (error) {
+    console.error('Error fetching all token creations:', error)
     throw error
   } finally {
     client.release()
