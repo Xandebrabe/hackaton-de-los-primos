@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 import { useWallet } from "@/contexts/wallet-context"
 import { createPoolTransaction, signAndSubmitTransaction } from "@/lib/solana-utils"
+import { TokenSwap } from "@/components/token-swap"
 
 // Sample events data
 const sampleEvents: Event[] = [
@@ -145,7 +146,6 @@ export default function HomePage() {
             // Generate test token parameters
             const testTokenData = {
                 userPublicKey: session.publicKey,
-                baseMint: "11111111111111111111111111111112", // Test mint address - in real app this would be generated
                 name: "Test Hackathon Token",
                 symbol: "THT",
                 uri: "https://example.com/metadata.json", // Test metadata URI
@@ -161,13 +161,19 @@ export default function HomePage() {
             }
 
             console.log("Transaction created successfully, requesting signature...")
+            console.log("Token data:", createResult.tokenData)
 
             // Step 2: Sign and submit the transaction
-            const submitResult = await signAndSubmitTransaction(createResult.transaction)
+            const submitResult = await signAndSubmitTransaction(
+                createResult.transaction,
+                createResult.tokenData?.mintAddress
+            )
 
             if (submitResult.success && submitResult.signature) {
                 alert(`Token pool created successfully! Transaction: ${submitResult.signature}`)
                 console.log("Transaction signature:", submitResult.signature)
+                console.log("Mint address:", createResult.tokenData?.mintAddress)
+                console.log("Pool address:", createResult.tokenData?.poolAddress)
             } else {
                 throw new Error(submitResult.error || "Failed to submit transaction")
             }
@@ -236,6 +242,12 @@ export default function HomePage() {
                             <p className="text-primary-600 text-lg">No events found matching your criteria.</p>
                         </div>
                     )}
+                </div>
+
+                {/* Token Swap Section */}
+                <div className="border-t pt-6">
+                    <h2 className="text-2xl font-bold mb-4">Token Swap</h2>
+                    <TokenSwap />
                 </div>
             </div>
 
