@@ -274,3 +274,54 @@ export async function createPoolAndSign(
 
   return submitResult
 }
+
+/**
+ * Sign and simulate a transaction using Phantom wallet
+ */
+export async function simulateTransaction(
+  serializedTransaction: string
+): Promise<{ success: boolean; logs?: string[] | null; error?: any }> {
+  try {
+    // Check if Phantom is available
+    if (!window.solana || !window.solana.isPhantom) {
+      return {
+        success: false,
+        error: "Phantom wallet not found. Please install Phantom.",
+      }
+    }
+
+    if (!window.solana.isConnected || !window.solana.publicKey) {
+      return {
+        success: false,
+        error: "Phantom wallet not connected",
+      }
+    }
+
+    // Deserialize the transaction
+    const transaction = Transaction.from(
+      Buffer.from(serializedTransaction, "base64")
+    )
+
+    // Sign the transaction with Phantom to prepare for simulation
+    const signedTransaction = await window.solana.signTransaction(transaction)
+
+    // Simulate the transaction
+    const { value: simulationResult } =
+      await connection.simulateTransaction(signedTransaction)
+
+    if (simulationResult.err) {
+      return {
+        success: false,
+        error: simulationResult.err,
+        logs: simulationResult.logs,
+      }
+    }
+
+    return { success: true, logs: simulationResult.logs }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    }
+  }
+}
