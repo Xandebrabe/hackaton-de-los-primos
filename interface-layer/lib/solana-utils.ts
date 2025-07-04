@@ -36,6 +36,12 @@ export interface TransactionResponse {
   message?: string
   error?: string
   uri: string
+  tokenData?: {
+    id: number
+    mintAddress: string
+    poolAddress: string
+    positionAddress: string
+  }
 }
 
 export interface SignAndSubmitResult {
@@ -83,7 +89,8 @@ export async function createPoolTransaction(
  * Sign and submit a transaction using Phantom wallet
  */
 export async function signAndSubmitTransaction(
-  serializedTransaction: string
+  serializedTransaction: string,
+  mintAddress?: string
 ): Promise<SignAndSubmitResult> {
   try {
     // Check if Phantom is available
@@ -112,6 +119,25 @@ export async function signAndSubmitTransaction(
 
     // Wait for confirmation
     await connection.confirmTransaction(signature, "confirmed")
+
+    // Update database with transaction signature if mintAddress is provided
+    if (mintAddress) {
+      try {
+        await fetch("/api/tokens", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mintAddress,
+            transactionSignature: signature,
+          }),
+        })
+      } catch (error) {
+        console.error("Error updating database with transaction signature:", error)
+        // Don't fail the entire operation if database update fails
+      }
+    }
 
     return {
       success: true,

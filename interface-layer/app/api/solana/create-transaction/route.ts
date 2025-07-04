@@ -31,6 +31,7 @@ import {
     createMintToInstruction
 } from "@solana/spl-token"
 import { BN } from "@coral-xyz/anchor"
+import { initializeDatabase, saveTokenCreation } from "@/lib/database"
 
 // Solana RPC connection
 const connection = new Connection(
@@ -56,12 +57,16 @@ interface CreateDammV2PoolResponse {
     tx: Transaction,
     pool: PublicKey,
     position: PublicKey,
-    signers: Keypair[]
+    signers: Keypair[],
+    mintAddress: PublicKey
 }
 
 // This returns a serialized tx that we need to add Solana wallet adapter to sign and broadcast
 export async function POST(request: NextRequest) {
     try {
+        // Initialize database schema on first run
+        await initializeDatabase()
+
         const body: CreatePoolRequest = await request.json()
 
         // Validate required fields
@@ -75,7 +80,7 @@ export async function POST(request: NextRequest) {
         const userPublicKey = new PublicKey(body.userPublicKey)
 
         // Create the pool transaction
-        const { tx, pool, position, signers } = await createDammV2PoolTransaction(userPublicKey, TOKEN_A_SUPPLY)
+        const { tx, pool, position, signers, mintAddress } = await createDammV2PoolTransaction(userPublicKey, TOKEN_A_SUPPLY)
 
         // Get latest blockhash and set fee payer
         const { blockhash } = await connection.getLatestBlockhash()
@@ -84,6 +89,17 @@ export async function POST(request: NextRequest) {
 
         // Partially sign with server-side keypairs
         tx.partialSign(...signers)
+
+        // Save token creation data to database
+        const dbRecord = await saveTokenCreation({
+            mint_address: mintAddress.toString(),
+            creator_address: userPublicKey.toString(),
+            pool_address: pool.toString(),
+            position_address: position.toString(),
+            name: body.name,
+            symbol: body.symbol,
+            uri: body.uri,
+        })
 
         // Serialize the transaction for client-side signing
         const serializedTransaction = tx.serialize({
@@ -95,6 +111,12 @@ export async function POST(request: NextRequest) {
             success: true,
             transaction: Buffer.from(serializedTransaction).toString("base64"),
             message: "Pool creation transaction ready. Please sign with your wallet.",
+            tokenData: {
+                id: dbRecord,
+                mintAddress: mintAddress.toString(),
+                poolAddress: pool.toString(),
+                positionAddress: position.toString(),
+            }
         })
 
     } catch (error) {
@@ -116,6 +138,22 @@ export async function POST(request: NextRequest) {
 
 async function createDammV2PoolTransaction(creator: PublicKey, tokenAAmount: BN): Promise<CreateDammV2PoolResponse> {
     const cpAmmInstance = new CpAmm(connection)
+
+    const combinedTransaction = new Transaction();
+
+    // Check for USDC Associated Token Account and create if it doesn't exist
+    const usdcAtaAddress = await getAssociatedTokenAddress(USDC, creator);
+    const usdcAtaAccountInfo = await connection.getAccountInfo(usdcAtaAddress);
+
+    if (usdcAtaAccountInfo === null) {
+        const createUsdcAtaIx = createAssociatedTokenAccountInstruction(
+            creator,      // Payer
+            usdcAtaAddress, // New Associated Token Account
+            creator,      // Owner of the account
+            USDC          // Mint of the token
+        );
+        combinedTransaction.add(createUsdcAtaIx);
+    }
 
     const mintKeypair = Keypair.generate()
     const baseTokenMint = mintKeypair.publicKey
@@ -208,7 +246,7 @@ async function createDammV2PoolTransaction(creator: PublicKey, tokenAAmount: BN)
         tokenBProgram: TOKEN_PROGRAM_ID
     })
 
-    const transaction = new Transaction()
+    combinedTransaction
         .add(createMintAccountIx)
         .add(initializeMintIx)
         .add(createAtaIx)
@@ -216,10 +254,11 @@ async function createDammV2PoolTransaction(creator: PublicKey, tokenAAmount: BN)
         .add(...initCustomizePoolTx.instructions);
 
     return {
-        tx: transaction,
+        tx: combinedTransaction,
         pool,
         position,
-        signers: [mintKeypair, positionNft]
+        signers: [mintKeypair, positionNft],
+        mintAddress: baseTokenMint
     }
 }
 

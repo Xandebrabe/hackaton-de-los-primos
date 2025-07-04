@@ -159,13 +159,19 @@ export default function HomePage() {
             }
 
             console.log("Transaction created successfully, requesting signature...")
+            console.log("Token data:", createResult.tokenData)
 
             // Step 2: Sign and submit the transaction
-            const submitResult = await signAndSubmitTransaction(createResult.transaction)
+            const submitResult = await signAndSubmitTransaction(
+                createResult.transaction,
+                createResult.tokenData?.mintAddress
+            )
 
             if (submitResult.success && submitResult.signature) {
                 alert(`Token pool created successfully! Transaction: ${submitResult.signature}`)
                 console.log("Transaction signature:", submitResult.signature)
+                console.log("Mint address:", createResult.tokenData?.mintAddress)
+                console.log("Pool address:", createResult.tokenData?.poolAddress)
             } else {
                 throw new Error(submitResult.error || "Failed to submit transaction")
             }
