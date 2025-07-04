@@ -29,11 +29,6 @@ const connection = new Connection(
     "confirmed"
 )
 
-// DBC Config Address for DAMM V2
-const DBC_CONFIG_ADDRESS_DAMM_V2_2 = new PublicKey(
-    "have_to_find_good_one"
-)
-
 const USDC = new PublicKey(
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 )
