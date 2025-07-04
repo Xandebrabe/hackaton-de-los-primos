@@ -103,10 +103,10 @@ export default function HomePage() {
 
     const handleCreateEvent = async (eventData: EventFormData) => {
         try {
-            const res = await fetch("/api/circle/create-wallet", { // match the API route path
+            const res = await fetch("/api/circle/create-wallet", { 
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ walletSetName: eventData.title }),
+                body: JSON.stringify({ walletSetName: eventData.walletSetName || eventData.title, blockchains: [eventData.blockchain] }),
             });
 
             const result = await res.json();
@@ -119,7 +119,8 @@ export default function HomePage() {
                 ...eventData,
                 id: Date.now().toString(),
                 currentAttendees: 0,
-                walletId: result.wallets[0].id,  // Grab wallet ID from response array
+                walletId: result.wallets[0].id,  
+                blockchain: eventData.blockchain,
             };
 
             setEvents((prevEvents) => [newEvent, ...prevEvents]);

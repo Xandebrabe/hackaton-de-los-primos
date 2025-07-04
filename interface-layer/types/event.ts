@@ -12,6 +12,7 @@ export interface Event {
   imageUrl: string
   organizer: string
   walletId?: string
+  blockchain: string
   tags: string[]
 }
 
@@ -27,4 +28,6 @@ export interface EventFormData {
   imageUrl: string
   organizer: string
   tags: string[]
+  blockchain: string
+  walletSetName?: string
 }

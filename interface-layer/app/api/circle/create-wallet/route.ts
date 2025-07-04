@@ -19,15 +19,19 @@ export async function POST(req: NextRequest) {
         })
 
         const walletSetResponse = await client.createWalletSet({
-            name: 'WalletSet 1',
+            name: walletSetName,
         })
 
         console.log('Created WalletSet', walletSetResponse.data?.walletSet)
 
+        if (!walletSetResponse.data?.walletSet?.id) {
+            throw new Error("WalletSet creation failed: missing ID");
+        }
+
         const walletsResponse = await client.createWallets({
-            blockchains: ['MATIC-AMOY'],
-            count: 2,
-            walletSetId: walletSetResponse.data?.walletSet?.id ?? '',
+            blockchains,
+            count: 1,
+            walletSetId: walletSetResponse.data.walletSet.id,
         })
 
         console.log('Created Wallets', walletsResponse.data?.wallets)
@@ -35,7 +39,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             walletSet: walletSetResponse.data.walletSet,
-            wallets: walletsResponse.data.wallets,
+            wallets: walletsResponse.data?.wallets,
         });
     } catch (err) {
         console.error("Circle wallet creation failed:", err);

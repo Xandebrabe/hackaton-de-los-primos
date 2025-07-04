@@ -105,6 +105,13 @@ export function EventModal({ event, isOpen, onClose, onSubscribe }: EventModalPr
             </Button>
           </div>
 
+          {event.walletId && (
+            <div className="mt-2 text-xs text-primary-600 break-all">
+              Wallet: {event.walletId.slice(0, 6)}...{event.walletId.slice(-4)}
+              {event.blockchain && <span className="ml-1">({event.blockchain})</span>}
+            </div>
+          )}
+
           <div>
             <h4 className="font-semibold text-primary-900 mb-3">Tags</h4>
             <div className="flex flex-wrap gap-2">
