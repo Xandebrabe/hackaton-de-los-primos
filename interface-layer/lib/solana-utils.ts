@@ -28,6 +28,7 @@ export interface CreatePoolParams {
   name: string
   symbol: string
   uri: string
+  eventId: string
 }
 
 export interface TransactionResponse {
@@ -288,7 +289,8 @@ export async function disconnectPhantom(): Promise<void> {
 export async function createPoolAndSign(
   name: string,
   symbol: string,
-  uri: string
+  uri: string,
+  eventId: string
 ): Promise<SignAndSubmitResult> {
   // Get the connected Phantom wallet public key
   const userPublicKey = getPhantomPublicKey()
@@ -306,6 +308,7 @@ export async function createPoolAndSign(
     name,
     symbol,
     uri,
+    eventId,
   })
 
   if (!createResult.success || !createResult.transaction) {

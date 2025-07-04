@@ -153,6 +153,7 @@ export default function HomePage() {
                 name: "Test Hackathon Token",
                 symbol: "THT",
                 uri: "https://example.com/metadata.json", // Test metadata URI
+                eventId: "5", // Default event ID for test tokens
             }
 
             console.log("Creating test token with data:", testTokenData)
